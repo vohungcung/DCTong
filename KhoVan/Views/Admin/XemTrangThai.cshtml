@@ -1,5 +1,5 @@
 ﻿@{
-    ViewBag.Title = "DS đầu 8 đã soạn hàng";
+    ViewBag.Title = "DS đầu 8 đã phân công";
     Layout = "~/Views/Shared/_AdminLayout.cshtml";
 }
 <style>
@@ -66,15 +66,17 @@
 <div class="clear">
     <br />
 </div>
-<table id="dg" title="Danh sách outbound đã soạn hàng @ViewBag.count" class="easyui-datagrid" style="width: 100%; height: auto; margin: 0 auto" url="/admin/get_trangthai?from=@Request.QueryString["from"]&to=@Request.QueryString["to"]&page=@Request.QueryString["page"]&key=@Request.QueryString["key"]" toolbar="#toolbar" rownumbers="true" nowrap="False" fitcolumns="true" singleselect="true">
+<table id="dg" title="Danh sách outbound đã phân công: @ViewBag.count - Hàng hóa: @ViewBag.hh - Túi xốp : @ViewBag.tx" class="easyui-datagrid" style="width: 100%; height: auto; margin: 0 auto" url="/admin/get_trangthai?from=@Request.QueryString["from"]&to=@Request.QueryString["to"]&page=@Request.QueryString["page"]&key=@Request.QueryString["key"]" toolbar="#toolbar" rownumbers="true" nowrap="False" fitcolumns="true" singleselect="true">
     <thead>
         <tr>
-            <th field="ob" width="50">Outbound </th>
-            <th field="khachhang" width="70">Khách hàng</th>
-            <th field="diachi" width="150">Địa chỉ</th>
-            <th field="nguoisoan" width="150">Người soạn</th>
+            <th field="ob" width="100">Outbound </th>
+            <th field="hh" align="right" width="70">Hàng hóa </th>
+            <th field="tx" align="right" width="70">Túi xốp </th>
+            <th field="khachhang" width="200">Khách hàng</th>
+            <th field="address" width="200">Địa chỉ</th>
+            <th field="nguoisoan" width="100">Người soạn</th>
             <th field="ghichu" width="150">Ghi chú</th>
-            <th field="ngaysoan" width="150">Ngày giờ</th>
+            <th field="ngaysoan" width="100">Ngày giờ</th>
 
 
 
@@ -153,10 +155,8 @@
 
     }
     function newItem() {
-        $('#dlg').dialog('open').dialog('center').dialog('setTitle', 'Thêm');
-        $('#fm').form('clear');
-     
-        url = '/admin/ThemTrangThai';
+        
+        location = '/admin/ThemTrangThai';
     }
     function editItem() {
         var row = $('#dg').datagrid('getSelected');

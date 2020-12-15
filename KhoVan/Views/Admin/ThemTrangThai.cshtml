@@ -1,5 +1,5 @@
 ﻿@{
-    ViewBag.Title = "Import bảng phân công";
+    ViewBag.Title = "Phân công pick hàng";
     Layout = "~/Views/Shared/_AdminLayout.cshtml";
 }
 <style>
@@ -8,15 +8,25 @@
         width: 300px;
         height: 200px;
     }
+    input[type=text]{
+         width: 300px;
+         height:22px;
+    }
 </style>
 <h1>
-    Import bảng phân công
+    Phân công pick hàng
 </h1>
 <p>
-    <textarea id="dau8" placeholder="outbound | người soạn | ghi chú"></textarea>
+    <textarea id="dau8" placeholder="outbound"></textarea>
+</p>
+<p>
+    <input type="text" placeholder="ghi chú" name="ghichu" id="ghichu" value="" />
+</p>
+<p>
+    <input type="text" placeholder="người soạn" name="nguoisoan" id="nguoisoan" value="" />
 </p>
 <p id="message">
-   
+
 </p>
 <p>
     <input type="button" class="bt" name="name" value="Cập nhật" onclick="importtt()" />
@@ -29,7 +39,7 @@
         $("#xemtrangthai").addClass("menuselect");
 
     })
-  
+
 </script>
 
 
@@ -41,17 +51,28 @@
         var giatri = $.trim($("#dau8").val());
         if (giatri == "") {
             playSound1();
-            alert('bạn chưa nhập nội dung');
-         
+            alert('bạn chưa nhập đầu 8');
+            $("#dau8").focus();
             return;
         }
+        var nguoisoan = $.trim($("#nguoisoan").val());
+        if (giatri == "") {
+            playSound1();
+            alert('bạn chưa nhập người soạn');
+            $("#nguoisoan").focus();
+            return;
+        }
+        var ghichu = $.trim($("#ghichu").val());
+
         $(".bt").hide();
         $("#message").text("vui lòng chờ");
-        $.post('/admin/ImportTrangThai', {
-            dau8: giatri
+        $.post('/admin/ThemTrangThai', {
+            ob: giatri,
+            nguoisoan: nguoisoan,
+            ghichu: ghichu
         }, function (result) {
             if (result.success) {
-                alert('Import thành công');
+                alert('Thêm thành công');
                 playSound();
                 $("#dau8").val("")
                 $(".bt").show();
@@ -69,37 +90,7 @@
         }, 'json');
     }
 
-    function boimporttt() {
-        var giatri =$.trim( $("#dau8").val());
-        if (giatri == "") {
-            playSound1();
-            alert('bạn chưa nhập nội dung');
-          
-            return;
-        }
-
-        $(".bt").hide();
-        $("#message").text("vui lòng chờ");
-        $.post('/admin/BoImportTrangThai', {
-            dau8: giatri
-        }, function (result) {
-            if (result.success) {
-                alert('Bỏ thành công');
-                playSound();
-                $("#dau8").val("")
-                $(".bt").show();
-                $("#message").text("");
-            } else {
-                $.messager.show({    // show error message
-                    title: 'Error',
-                    msg: result.errorMsg
-                });
-                playSound1();
-                $(".bt").show();
-                $("#message").text("");
-            }
-        }, 'json');
-    }
+   
 
 
 </script>

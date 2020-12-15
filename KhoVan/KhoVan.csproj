@@ -1797,6 +1797,7 @@
     <Content Include="Views\Admin\ViewOBLoaiTru.cshtml" />
     <Content Include="Views\Admin\ImportTrangThai.cshtml" />
     <Content Include="Views\Admin\XemTrangThai.cshtml" />
+    <Content Include="Views\Admin\ThemTrangThai.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Code\" />

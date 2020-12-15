@@ -19242,8 +19242,14 @@ select v.* from (select top 100 percent Row_number () over (order by OB) positio
 
         public ActionResult ImportTrangThai()
         {
-            
-          
+
+
+            return View();
+        }
+        public ActionResult ThemTrangThai()
+        {
+
+
             return View();
         }
         [HttpPost]
@@ -19253,38 +19259,42 @@ select v.* from (select top 100 percent Row_number () over (order by OB) positio
             {
                 return Json(new { errorMsg = "Bạn chưa đăng nhập", success = false });
             }
-          
+
             if (Commons.CheckPermit("dattrangthaioutbound") == false)
             {
                 return Json(new { errorMsg = "Bạn không có quyền này", success = false });
             }
-            DataTable dt = Commons.GetData("select d.ob from wd d inner join xh x on x.divisionid=d.divisionid and d.voucherid=x.voucherid and d.ob=x.ob where d.ob='" + Fix(ob) + "'");
-            if (dt.Rows.Count == 0)
+
+            string[] list = ob.Split('\n');
+            foreach (string item in list)
             {
-                return Json(new { errorMsg = ob + " chưa có pick hàng", success = false });
+
+                DataTable dt = Commons.GetData("select d.ob from wd d inner join xh x on x.divisionid=d.divisionid and d.voucherid=x.voucherid and d.ob=x.ob where d.ob='" + Fix(item) + "'");
+                if (dt.Rows.Count == 0)
+                {
+                    return Json(new { errorMsg = item + " chưa có pick hàng", success = false });
+                }
+                dt = Commons.GetData("select ob from wd where voucherid =(select top 1 d.voucherid from wd d where ob=N'" + Fix(item) + "' and d.divisionid=N'" + Fix(GlobalVariables.DivisionID) + "') and divisionid=N'" + Fix(GlobalVariables.DivisionID) + "' group by ob");
+                if (dt.Rows.Count > 1)
+                {
+                    return Json(new { errorMsg = item + " chưa có tách", success = false });
+                }
+                if (GlobalVariables.IsAdmin == false)
+                {
+                    dt = Commons.GetData("select [dbo].[isConfirmOB](N'" + Fix(item) + "',N'" + Fix(GlobalVariables.DivisionID) + "') v");
+                    if (dt.Rows[0][0].ToString() == "1")
+                    {
+                        return Json(new { errorMsg = item + " đã xác nhận lấy hàng rồi", success = false });
+                    }
+                }
+
             }
-            dt = Commons.GetData("select ob from wd where voucherid =(select top 1 d.voucherid from wd d where ob=N'" + Fix(ob) + "' and d.divisionid=N'" + Fix(GlobalVariables.DivisionID) + "') and divisionid=N'" + Fix(GlobalVariables.DivisionID) + "' group by ob");
-            if (dt.Rows.Count > 1)
+            string sWrite = "";
+            foreach (string item in list)
             {
-                return Json(new { errorMsg = ob + " chưa có tách", success = false });
-            }
-            dt = Commons.GetData("select ob from oblist where  divisionid=N'" + Fix(GlobalVariables.DivisionID) + "' and ob=N'" + Fix(ob) + "' ");
-            if (dt.Rows.Count > 0)
-            {
-                return Json(new { errorMsg = ob + " đã có nhập bao thùng rồi, nghĩa là chuẩn bị xác nhận xuất rồi", success = false });
-            }
-            dt = Commons.GetData("select ob from obout where  divisionid=N'" + Fix(GlobalVariables.DivisionID) + "' and ob=N'" + Fix(ob) + "' ");
-            if (dt.Rows.Count > 0)
-            {
-                return Json(new { errorMsg = ob + " đã có nhập bao thùng rồi bên tặng phẩm rồi", success = false });
-            }
-            dt = Commons.GetData("select top 1 w.voucherid from wd d inner join w on d.divisionid=w.divisionid and d.voucherid=w.voucherid  where  d.divisionid=N'" + Fix(GlobalVariables.DivisionID) + "' and d.ob=N'" + Fix(ob) + "' and w.dangsoan=1 ");
-            if (dt.Rows.Count > 0)
-            {
-                return Json(new { errorMsg = ob + " đã cập nhật là đang soạn rồi", success = false });
+                sWrite += "exec SP_giaoviec '" + item + "',N'" + Fix(nguoisoan) + "' ,N'" + Fix(ghichu) + "';";
             }
 
-            string sWrite = "update w set dangsoan=1,nguoisoan=N'" + Fix(nguoisoan) + "',ghichu=N'" + Fix(ghichu) + "',ngaysoan=getdate() where divisionid=N'" + Fix(GlobalVariables.DivisionID) + "' and voucherid =(select top 1 d.voucherid from wd d where ob=N'" + Fix(ob) + "' and d.divisionid=N'" + Fix(GlobalVariables.DivisionID) + "'); " + Environment.NewLine;
             Exception ex = null;
             bool b = Commons.ExecuteNoneQuery(sWrite, ref ex);
 
@@ -19307,7 +19317,16 @@ select v.* from (select top 100 percent Row_number () over (order by OB) positio
                 return Json(new { errorMsg = "Bạn không có quyền này", success = false });
             }
             string dau8 = Commons.ConvertToString(Request.QueryString["id"]);
-            string sWrite = "update w set dangsoan=1,nguoisoan=N'" + Fix(nguoisoan) + "',ghichu=N'" + Fix(ghichu) + "',ngaysoan=getdate() where divisionid=N'" + Fix(GlobalVariables.DivisionID) + "' and voucherid =(select top 1 d.voucherid from wd d where ob=N'" + Fix(dau8) + "' and d.divisionid=N'" + Fix(GlobalVariables.DivisionID) + "'); " + Environment.NewLine;
+            if (GlobalVariables.IsAdmin == false)
+            {
+                DataTable dt = Commons.GetData("select [dbo].[isConfirmOB](N'" + Fix(dau8) + "',N'" + Fix(GlobalVariables.DivisionID) + "') v");
+                if (dt.Rows[0][0].ToString() == "1")
+                {
+                    return Json(new { errorMsg = dau8 + " đã xác nhận lấy hàng rồi", success = false });
+                }
+            }
+
+            string sWrite = "exec SP_giaoviec '" + dau8 + "',N'" + Fix(nguoisoan) + "' ,N'" + Fix(ghichu) + "','x';";
             Exception ex = null;
             bool b = Commons.ExecuteNoneQuery(sWrite, ref ex);
 
@@ -19336,7 +19355,7 @@ select v.* from (select top 100 percent Row_number () over (order by OB) positio
                 string[] l = dau8.Split('\n');
                 //kiem tra
 
-                 
+
                 foreach (string item in l)
                 {
                     string[] ds = item.Split('\t');
@@ -19355,15 +19374,10 @@ select v.* from (select top 100 percent Row_number () over (order by OB) positio
                     {
                         return Json(new { errorMsg = ob + " chưa có tách", success = false });
                     }
-                    dt = Commons.GetData("select ob from oblist where  divisionid=N'" + Fix(GlobalVariables.DivisionID) + "' and ob=N'" + Fix(ob) + "' ");
-                    if (dt.Rows.Count > 0)
+                    dt = Commons.GetData("select [dbo].[isConfirmOB](N'" + Fix(item) + "',N'" + Fix(GlobalVariables.DivisionID) + "') v");
+                    if (dt.Rows[0][0].ToString() == "1")
                     {
-                        return Json(new { errorMsg = ob + " đã có nhập bao thùng rồi, nghĩa là chuẩn bị xác nhận xuất rồi", success = false });
-                    }
-                    dt = Commons.GetData("select ob from obout where  divisionid=N'" + Fix(GlobalVariables.DivisionID) + "' and ob=N'" + Fix(ob) + "' ");
-                    if (dt.Rows.Count > 0)
-                    {
-                        return Json(new { errorMsg = ob + " đã có nhập bao thùng rồi bên tặng phẩm rồi", success = false });
+                        return Json(new { errorMsg = item + " đã xác nhận lấy hàng rồi", success = false });
                     }
                     dt = Commons.GetData("select top 1 w.voucherid from wd d inner join w on d.divisionid=w.divisionid and d.voucherid=w.voucherid  where  d.divisionid=N'" + Fix(GlobalVariables.DivisionID) + "' and d.ob=N'" + Fix(ob) + "' and w.dangsoan=1 ");
                     if (dt.Rows.Count > 0)
@@ -19381,7 +19395,7 @@ select v.* from (select top 100 percent Row_number () over (order by OB) positio
                     if (ds.Length > 2)
                         ghichu = ds[2];
 
-                    sWrite += "update w set dangsoan=1,nguoisoan=N'" + Fix(nguoisoan) + "',ghichu=N'" + Fix(ghichu) + "',ngaysoan=getdate() where divisionid=N'" + Fix(GlobalVariables.DivisionID) + "' and voucherid =(select top 1 d.voucherid from wd d where ob=N'" + Fix(ob) + "' and d.divisionid=N'" + Fix(GlobalVariables.DivisionID) + "'); " + Environment.NewLine;
+                    sWrite += "exec SP_giaoviec '" + ob + "',N'" + Fix(nguoisoan) + "' ,N'" + Fix(ghichu) + "';";
                 }
                 Exception ex = null;
                 bool result = Commons.ExecuteNoneQuery(sWrite, ref ex);
@@ -19427,12 +19441,20 @@ select v.* from (select top 100 percent Row_number () over (order by OB) positio
                     {
                         return Json(new { errorMsg = item + " chưa có pick hàng", success = false });
                     }
+                    if (GlobalVariables.IsAdmin == false)
+                    {
+                        dt = Commons.GetData("select [dbo].[isConfirmOB](N'" + Fix(item) + "',N'" + Fix(GlobalVariables.DivisionID) + "') v");
+                        if (dt.Rows[0][0].ToString() == "1")
+                        {
+                            return Json(new { errorMsg = item + " đã xác nhận lấy hàng rồi", success = false });
+                        }
 
+                    }
                 }
                 string sWrite = "";
                 foreach (string item in l)
                 {
-                    sWrite += "update w set dangsoan=0,nguoisoan='',ghichu='',ngaysoan=null where divisionid=N'" + Fix(GlobalVariables.DivisionID) + "' and voucherid =(select top 1 d.voucherid from wd d where ob=N'" + Fix(item) + "' and d.divisionid=N'" + Fix(GlobalVariables.DivisionID) + "'); " + Environment.NewLine;
+                    sWrite += "exec SP_xoagiaoviec '" + item + "'; " + Environment.NewLine;
                 }
                 Exception ex = null;
                 bool result = Commons.ExecuteNoneQuery(sWrite, ref ex);
@@ -19474,7 +19496,7 @@ select v.* from (select top 100 percent Row_number () over (order by OB) positio
 
             }
 
-            string sSQL = "exec SP_dau8dasoan '" + from + "','" + to + "',N'" + Commons.Fix(tukhoa) + "',"+ CurrentPage+","+PAGE_SIZE;
+            string sSQL = "exec SP_dau8dasoan '" + from + "','" + to + "',N'" + Commons.Fix(tukhoa) + "'," + CurrentPage + "," + PAGE_SIZE;
 
             DataTable dt = Commons.GetData(sSQL);
             var query = from p in dt.AsEnumerable()
@@ -19482,11 +19504,13 @@ select v.* from (select top 100 percent Row_number () over (order by OB) positio
                         {
                             dangsoan = p["dangsoan"],
                             nguoisoan = p["nguoisoan"],
-                            ghichu= p["ghichu"],
+                            ghichu = p["ghichu"],
                             ob = p["ob"],
                             khachhang = p["CustomerName"],
                             address = p["address"],
-                            ngaysoan =Commons.ConvertToDateTime( p["ngaysoan"]).ToString("dd/MM/yyyy HH:mm")
+                            hh =Commons.ConvertToDecimal( p["hh"]).ToString("N0"),
+                            tx = Commons.ConvertToDecimal(p["tx"]).ToString("N0"),
+                            ngaysoan = Commons.ConvertToDateTime(p["ngaysoan"]).ToString("dd/MM/yyyy HH:mm")
                         };
             return Json(query);
 
@@ -19497,12 +19521,24 @@ select v.* from (select top 100 percent Row_number () over (order by OB) positio
             string from = Commons.ConvertToString(Request.QueryString["from"]).Replace("'", "");
             string to = Commons.ConvertToString(Request.QueryString["to"]).Replace("'", "");
             string tukhoa = Commons.ConvertToString(Request.QueryString["key"]);
+            if (from == "" || to == "")
+            {
+                from = DateTime.Now.AddDays(-3).ToString("yyyy.MM.dd");
+                to = DateTime.Now.ToString("yyyy.MM.dd");
+            }
+            else
+            {
+                string[] l1 = from.Split('/');
+                from = l1[2] + "." + l1[1] + "." + l1[0];
+                l1 = to.Split('/');
+                to = l1[2] + "." + l1[1] + "." + l1[0];
 
+            }
 
             string sSQL = "exec ExportDau8DangSoan  '" + from + "','" + to + "',N'" + Commons.Fix(tukhoa) + "' ";
             DataTable dt = Commons.GetData(sSQL);
             Export d = new Controllers.Export();
-            d.ExportExcel(Response, "ExportDau8DangSoan", dt);
+            d.ExportExcel(Response, "ExportDau8Dagiaoviec", dt);
             return View();
 
         }
@@ -19536,8 +19572,9 @@ select v.* from (select top 100 percent Row_number () over (order by OB) positio
 
             DataTable dt = Commons.GetData(sSQL);
 
-            int nTotal = Convert.ToInt32(dt.Rows[0][0]);
-            int nSum = Convert.ToInt32(dt.Rows[0][1]);
+            int nTotal = Commons.ConvertToInt(dt.Rows[0][0]);
+            int hh = Commons.ConvertToInt(dt.Rows[0][1]);
+            int tx = Commons.ConvertToInt(dt.Rows[0][2]);
             int PAGE_SIZE = 20;
             DataTable dp = new DataTable();
             dp.Columns.Add("link", "".GetType());
@@ -19586,6 +19623,8 @@ select v.* from (select top 100 percent Row_number () over (order by OB) positio
             }
             ViewBag.Paging = dp;
             ViewBag.Count = nTotal.ToString("N0");
+            ViewBag.hh = hh.ToString("N0");
+            ViewBag.tx = tx.ToString("N0");
             return View();
         }
         [HttpPost]
@@ -19600,12 +19639,24 @@ select v.* from (select top 100 percent Row_number () over (order by OB) positio
             {
                 return Json(new { errorMsg = "Bạn không có quyền này", success = false });
             }
-            string sWrite = "update w set dangsoan = 0, nguoisoan = N'',ngaysoan=null where divisionid = N'" + Fix(GlobalVariables.DivisionID) + "' and voucherid = (select top 1 d.voucherid from wd d where ob = N'" + Fix(ob) + "' and d.divisionid = N'" + Fix(GlobalVariables.DivisionID) + "');";
+            if (GlobalVariables.IsAdmin == false)
+            {
+                DataTable dt = Commons.GetData("select [dbo].[isConfirmOB](N'" + Fix(ob) + "',N'" + Fix(GlobalVariables.DivisionID) + "') v");
+                if (dt.Rows[0][0].ToString() == "1")
+                {
+                    return Json(new { errorMsg = ob + " đã xác nhận lấy hàng rồi", success = false });
+                }
 
-            Commons.ExecuteNoneQuery(sWrite);
-            return Json(new { msg = "Xóa thành công", success = true });
+            }
+            string sWrite = "exec SP_xoagiaoviec '" + ob + "'; " + Environment.NewLine;
+            Exception ex = null;
+            bool b = Commons.ExecuteNoneQuery(sWrite, ref ex);
+            if (b)
+                return Json(new { msg = "Xóa thành công", success = true });
+
+            return Json(new { errorMsg = ex.Message, success = false });
         }
-       
+
     }
 }
 

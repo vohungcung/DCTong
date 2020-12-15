@@ -246,11 +246,9 @@
             }
             @if (Global.Commons.CheckPermit("dattrangthaioutbound"))
             {
-                <div class="menu-e" id="importtrangthai" group="Lấy hàng">
-                    <a href="/admin/ImportTrangThai">Đặt trạng thái đã soạn hàng</a>
-                </div>
+                
                 <div class="menu-e" id="xemtrangthai" group="Lấy hàng">
-                    <a href="/admin/xemtrangthai">Xem trạng thái đã soạn hàng</a>
+                    <a href="/admin/xemtrangthai?from=@DateTime.Now.ToString("dd/MM/yyyy")&to=@DateTime.Now.ToString("dd/MM/yyyy")">Xem bảng phân công</a>
                 </div>
             }
             @if (Global.Commons.CheckPermit("thietlaphethong"))
