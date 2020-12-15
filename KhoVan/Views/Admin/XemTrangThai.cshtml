@@ -1,0 +1,275 @@
+﻿@{
+    ViewBag.Title = "DS đầu 8 đã soạn hàng";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+<style>
+    input[type=text], textarea {
+        text-transform: uppercase;
+    }
+</style>
+<script>
+    $(window).load(function () {
+        $("#xemtrangthai").addClass("menuselect");
+
+    })
+
+</script>
+<style>
+    .v {
+        width: 30px;
+        height: 20px;
+    }
+</style>
+<div style="margin: 10px 0;"></div>
+
+
+<script>
+
+
+</script>
+<div style="margin: 10px 0;"></div>
+<div class="easyui-panel" style="width: 100%; padding: 5px 5px; border: none;">
+    <input class="easyui-datebox fromdate" labelWidth="150" data-options="formatter:myformatter,parser:myparser" label="Từ ngày" data-options="searcher:doSearch" style="width: 100%;" value="@Request.QueryString["from"]">
+</div>
+<div class="easyui-panel" style="width: 100%; padding: 5px 5px; border: none">
+    <input class="easyui-datebox todate" labelWidth="150" data-options="formatter:myformatter,parser:myparser" label="Đến ngày" data-options="searcher:doSearch" style="width: 100%;" value="@Request.QueryString["to"]">
+</div>
+
+<div style="margin: 10px 0;"></div>
+<div class="easyui-panel" style="width: 100%; padding: 5px 5px; border: none">
+    <input value="@Global.Commons.ConvertToString(Request.QueryString["key"])" labelWidth="150" class="key easyui-searchbox" label="Từ khóa" data-options="searcher:doSearch" style="width: 100%">
+</div>
+<script>
+    function doSearch() {
+      
+        var key = $(".key").val();
+    
+        var fromdate = $(".fromdate").val();
+        var todate = $(".todate").val();
+        location = "/admin/XemTrangThai?key="+key+"&from=" + fromdate + "&to=" + todate 
+
+    }
+    $('.fromdate').datebox({
+        onSelect: function (date) {
+            setTimeout(doSearch, 300);
+        }
+    });
+    $('.todate').datebox({
+        onSelect: function (date) {
+            setTimeout(doSearch, 300);
+        }
+    });
+
+</script>
+<div class="clear">
+</div>
+<div class="clear">
+    <br />
+</div>
+<table id="dg" title="Danh sách outbound đã soạn hàng @ViewBag.count" class="easyui-datagrid" style="width: 100%; height: auto; margin: 0 auto" url="/admin/get_trangthai?from=@Request.QueryString["from"]&to=@Request.QueryString["to"]&page=@Request.QueryString["page"]&key=@Request.QueryString["key"]" toolbar="#toolbar" rownumbers="true" nowrap="False" fitcolumns="true" singleselect="true">
+    <thead>
+        <tr>
+            <th field="ob" width="50">Outbound </th>
+            <th field="khachhang" width="70">Khách hàng</th>
+            <th field="diachi" width="150">Địa chỉ</th>
+            <th field="nguoisoan" width="150">Người soạn</th>
+            <th field="ghichu" width="150">Ghi chú</th>
+            <th field="ngaysoan" width="150">Ngày giờ</th>
+
+
+
+        </tr>
+    </thead>
+</table>
+<div id="toolbar">
+    <a href="javascript:void(0)" class="easyui-linkbutton" iconcls="icon-add" plain="true" onclick="newItem()">Thêm</a>
+    <a href="javascript:void(0)" class="easyui-linkbutton" iconcls="icon-add" plain="true" onclick="importItem()">Import</a>
+
+    <a href="javascript:void(0)" class="easyui-linkbutton" iconcls="icon-edit" plain="true" onclick="editItem()">Sửa</a>
+    <a href="javascript:void(0)" class="easyui-linkbutton" iconcls="icon-remove" plain="true" onclick="deleteItem()">Xóa</a>
+    <a href="javascript:void(0)" class="easyui-linkbutton" iconcls="icon-print" plain="true" onclick="exportsoanhang()">Export</a>
+
+
+</div>
+
+
+
+
+
+<div class="clear">
+    <br />
+</div>
+
+<center>
+    Trang :
+    @foreach (System.Data.DataRow itemp in ViewBag.Paging.Rows)
+    {
+        <a href="@itemp["link"]" class="@itemp["class"]">@itemp["text"]</a>
+    }
+
+</center>
+
+
+
+<div id="dlg" class="easyui-dialog" style="max-width: 500px" closed="true" buttons="#dlg-buttons">
+    <form id="fm" method="post" novalidate style="margin: 0; padding: 20px 50px">
+        <div style="margin-bottom: 20px; font-size: 14px; border-bottom: 1px solid #ccc">Thông tin</div>
+
+
+
+        <div style="margin-bottom: 10px">
+            <input name="ob" id="ob" class="easyui-textbox" required="true" label="Outbound:" style="width: 100%">
+        </div>
+       
+        <div style="margin-bottom: 10px">
+            <input name="nguoisoan" id="nguoisoan" class="easyui-textbox"  required="true" label="Người soạn:" style="width: 100%">
+        </div>
+
+        <div style="margin-bottom: 10px">
+            <input name="ghichu" id="ghichu" class="easyui-textbox"   label="Ghi chú:" style="width: 100%">
+        </div>
+
+       
+
+
+    </form>
+</div>
+<div id="dlg-buttons">
+    <a href="javascript:void(0)" class="easyui-linkbutton c6" iconcls="icon-ok" onclick="saveItem()" style="width: 90px">Cập nhật</a>
+    <a href="javascript:void(0)" class="easyui-linkbutton" iconcls="icon-cancel" onclick="javascript:$('#dlg').dialog('close')" style="width: 90px">Bỏ qua</a>
+</div>
+
+
+
+
+
+
+
+<script>
+
+    var url;
+    function importItem() {
+        location = '/admin/ImportTrangThai';
+
+    }
+    function newItem() {
+        $('#dlg').dialog('open').dialog('center').dialog('setTitle', 'Thêm');
+        $('#fm').form('clear');
+     
+        url = '/admin/ThemTrangThai';
+    }
+    function editItem() {
+        var row = $('#dg').datagrid('getSelected');
+        if (row) {
+            $('#dlg').dialog('open').dialog('center').dialog('setTitle', 'Sửa');
+            $('#dlg').form('load', row);
+            url = '/admin/SuaTrangThai?id='+row.ob;
+        }
+    }
+
+
+
+    function saveItem() {
+
+        $('#fm').form('submit', {
+            url: url,
+            onSubmit: function () {
+                return $(this).form('validate');
+            },
+            success: function (result) {
+                var result = eval('(' + result + ')');
+                if (result.errorMsg) {
+                    $.messager.show({
+                        title: 'Error',
+                        msg: result.errorMsg
+                    });
+                    alert(result.errorMsg);
+                } else {
+                    $.messager.show({
+                        title: 'Thông báo',
+                        msg: result.msg
+                    });
+                    alert(result.msg);
+                    $('#dlg').dialog('close');        // close the dialog
+                    $('#dg').datagrid('reload');    // reload the user data
+                }
+            }
+        });
+
+    }
+
+    function exportsoanhang() {
+        open('/admin/ExportDau8DangSoan?from=@Request.QueryString["from"]&to=@Request.QueryString["from"]&key=@Request.QueryString["key"]')
+    }
+   
+    function deleteItem() {
+        var row = $('#dg').datagrid('getSelected');
+        if (row) {
+            $.messager.confirm('Xác nhận', 'Bạn có chắc là muốn xóa?', function (r) {
+                if (r) {
+
+                    $.post('/admin/Xoa_TrangThai', { ob: row.ob }, function (result) {
+                        if (result.success) {
+
+                            playSound();
+                            alert('Đã xóa thành công');
+                            $('#dg').datagrid('reload')
+
+                        } else {
+                            $.messager.show({    // show error message
+                                title: 'Error',
+                                msg: result.errorMsg
+                            });
+                            playSound1();
+                            alert(result.errorMsg);
+                        }
+                    }, 'json');
+                }
+            });
+        }
+
+    }
+
+</script>
+
+<audio id="audio" src="/sound/beep-07.wav" autostart="false"></audio>
+<audio id="audio1" src="/sound/error.wav" autostart="false"></audio>
+
+<script>
+    function playSound() {
+        var sound = document.getElementById("audio");
+        sound.play();
+    }
+    function playSound1() {
+        var sound = document.getElementById("audio1");
+        sound.play();
+    }
+    function ketnoi(a, b) {
+        var sl = document.getElementsByName(a);
+        sl = $(sl).prev();
+
+        $(sl).keydown(function (e) {
+            if (e.which == 13) focusto(b);
+        })
+    }
+    function ketnoitoclass(a, b) {
+        var sl = document.getElementsByName(a);
+        sl = $(sl).prev();
+
+        $(sl).keydown(function (e) {
+            if (e.which == 13)
+                $("."+b).focus();
+        })
+    }
+    function focusto(name) {
+        var sl = document.getElementsByName(name);
+        $(sl).prev().focus();
+
+    }
+    $(document).ready(function () {
+        ketnoi("ob", "nguoisoan");
+        ketnoi("nguoisoan", "ghichu");
+        ketnoitoclass("ghichu", "c6");
+
+    })
+</script>
