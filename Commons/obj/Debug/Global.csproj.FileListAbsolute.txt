@@ -89,3 +89,4 @@ D:\projects\DCTong\Commons\bin\Debug\Global.dll
 D:\projects\DCTong\Commons\bin\Debug\Global.pdb
 D:\projects\DCTong\Commons\obj\Debug\Global.dll
 D:\projects\DCTong\Commons\obj\Debug\Global.pdb
+D:\projects\DCTong\Commons\obj\Debug\Global.csprojResolveAssemblyReference.cache

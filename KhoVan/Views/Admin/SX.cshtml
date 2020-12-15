@@ -360,7 +360,37 @@
                 </td>
             </tr>*@
 
+            @foreach (System.Data.DataRow item in Global.Commons.GetData("exec SP_SumWD '"+Global.Commons.Fix(Global.Commons.ConvertToString( Request.QueryString["id"]))+"'").Rows)
+            {
+                <tr >
+                   
+                    <th colspan="4">
+                       Tổng cộng
+                    </th>
+                  
 
+                 
+                    <th style="text-align:right">
+                        @Global.Commons.ConvertToDecimal(item[0]).ToString("N0")
+                    </th>
+
+                    <th style="text-align:right">
+                        @Global.Commons.ConvertToDecimal(item[1]).ToString("N0")
+                    </th>
+
+
+                    <th class="vt">
+
+                      
+                      
+                    </th>
+
+                    <th style="text-align:center" class="ud">
+                     
+                    </th>
+                </tr>
+
+            }
             <tr>
                 <td style="text-align:center" colspan="6"></td>
             </tr>
